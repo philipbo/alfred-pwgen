@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # encoding: utf-8
 #
 # Copyright (c) 2015 Dean Jackson <deanishe@deanishe.net>
@@ -135,7 +135,7 @@ def entropy_from_strength(strength):
     treat as level and multiply by ``ENTROPY_PER_LEVEL``.
 
     """
-    if not isinstance(strength, basestring):
+    if not isinstance(strength, str):
         strength = str(strength)
     strength = strength.strip()
     if not strength:
@@ -197,7 +197,7 @@ class PasswordApp(object):
 
         # Create user generator directory
         if not os.path.exists(user_generator_dir):
-            os.makedirs(user_generator_dir, 0700)
+            os.makedirs(user_generator_dir, 0o700)
         else:  # Import user generators
             import_generators(user_generator_dir)
 

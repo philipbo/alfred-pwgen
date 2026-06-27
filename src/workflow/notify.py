@@ -26,7 +26,7 @@ icon and then calls the application to post notifications.
 from __future__ import print_function, unicode_literals
 
 import os
-import plistlib
+from .compat import read_plist, write_plist
 import shutil
 import subprocess
 import sys
@@ -34,7 +34,7 @@ import tarfile
 import tempfile
 import uuid
 
-import workflow
+from . import workflow
 
 
 _wf = None
@@ -144,10 +144,10 @@ def install_notifier():
     # Change bundle ID of installed app
     ip_path = os.path.join(app_path, 'Contents/Info.plist')
     bundle_id = '{0}.{1}'.format(wf().bundleid, uuid.uuid4().hex)
-    data = plistlib.readPlist(ip_path)
+    data = read_plist(ip_path)
     log().debug('changing bundle ID to %r', bundle_id)
     data['CFBundleIdentifier'] = bundle_id
-    plistlib.writePlist(data, ip_path)
+    write_plist(data, ip_path)
 
 
 def validate_sound(sound):

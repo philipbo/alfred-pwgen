@@ -57,7 +57,7 @@ ENTROPY_PER_LEVEL = 32
 punctuation = """!"#$%&'()*+,-./:;<=>?@[]^_{|}"""
 
 
-class PassGenBase(object):
+class PassGenBase(object, metaclass=abc.ABCMeta):
     """Base class for generators.
 
     Generators *must* subclass this abstract base class (or
@@ -76,8 +76,6 @@ class PassGenBase(object):
 
     """
 
-    __metaclass__ = abc.ABCMeta
-
     def password(self, strength=None, length=None):
         """Method to generate and return password.
 
@@ -90,7 +88,7 @@ class PassGenBase(object):
             length = int(math.ceil(strength / self.entropy))
 
         chars = self.data
-        pw = [chars[ord(c) % len(chars)] for c in os.urandom(length)]
+        pw = [chars[b % len(chars)] for b in os.urandom(length)]
         return ''.join(pw), self.entropy * length
 
     @property
@@ -98,7 +96,8 @@ class PassGenBase(object):
         """Entropy per element (character word) in bits."""
         return math.log(len(self.data), 2)
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def id(self):
         """Short name of the generator.
 
@@ -107,17 +106,20 @@ class PassGenBase(object):
         """
         return
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def name(self):
         """Human-readable name of the generator."""
         return
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def description(self):
         """Longer description of the generator."""
         return
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def data(self):
         """List of data to choose from."""
         return

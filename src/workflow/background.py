@@ -19,13 +19,28 @@ and examples.
 
 from __future__ import print_function, unicode_literals
 
-import signal
-import sys
 import os
+import signal
 import subprocess
 import pickle
+import sys
 
-from workflow import Workflow
+
+def _bootstrap_script_imports():
+    """Allow this module to run as a standalone script from Alfred."""
+    if __package__:
+        return False
+
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    return True
+
+
+if _bootstrap_script_imports():
+    from workflow.workflow import Workflow
+else:
+    from .workflow import Workflow
 
 __all__ = ['is_running', 'run_in_background']
 
@@ -96,7 +111,7 @@ def _job_pid(name):
     if not os.path.exists(pidfile):
         return
 
-    with open(pidfile, 'rb') as fp:
+    with open(pidfile, 'r', encoding='utf-8') as fp:
         pid = int(fp.read())
 
         if _process_exists(pid):
@@ -143,7 +158,7 @@ def _background(pidfile, stdin='/dev/null', stdout='/dev/null',
             if pid > 0:
                 if write:  # write PID of child process to `pidfile`
                     tmp = pidfile + '.tmp'
-                    with open(tmp, 'wb') as fp:
+                    with open(tmp, 'w', encoding='utf-8') as fp:
                         fp.write(str(pid))
                     os.rename(tmp, pidfile)
                 if wait:  # wait for child process to exit
@@ -165,9 +180,9 @@ def _background(pidfile, stdin='/dev/null', stdout='/dev/null',
 
     # Now I am a daemon!
     # Redirect standard file descriptors.
-    si = open(stdin, 'r', 0)
-    so = open(stdout, 'a+', 0)
-    se = open(stderr, 'a+', 0)
+    si = open(stdin, 'rb', buffering=0)
+    so = open(stdout, 'ab', buffering=0)
+    se = open(stderr, 'ab', buffering=0)
     if hasattr(sys.stdin, 'fileno'):
         os.dup2(si.fileno(), sys.stdin.fileno())
     if hasattr(sys.stdout, 'fileno'):
@@ -233,7 +248,7 @@ def run_in_background(name, args, **kwargs):
         _log().debug('[%s] command cached: %s', name, argcache)
 
     # Call this script
-    cmd = ['/usr/bin/python', __file__, name]
+    cmd = [sys.executable, __file__, name]
     _log().debug('[%s] passing job to background runner: %r', name, cmd)
     retcode = subprocess.call(cmd)
 

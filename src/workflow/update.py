@@ -27,12 +27,29 @@ from collections import defaultdict
 from functools import total_ordering
 import json
 import os
-import tempfile
 import re
 import subprocess
+import sys
+import tempfile
 
-import workflow
-import web
+
+def _bootstrap_script_imports():
+    """Allow this module to run as a standalone script from Alfred."""
+    if __package__:
+        return False
+
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    return True
+
+
+if _bootstrap_script_imports():
+    import workflow
+    from workflow import web
+else:
+    from . import workflow
+    from . import web
 
 # __all__ = []
 
@@ -143,7 +160,7 @@ class Download(object):
                 pre-release. Defaults to False.
 
         """
-        if isinstance(version, basestring):
+        if isinstance(version, str):
             version = Version(version)
 
         self.url = url

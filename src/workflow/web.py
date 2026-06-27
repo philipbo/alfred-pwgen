@@ -18,10 +18,12 @@ import re
 import socket
 import string
 import unicodedata
-import urllib
-import urllib2
-import urlparse
+import urllib.error
+import urllib.parse
+import urllib.request
 import zlib
+
+urllib2 = urllib.request
 
 
 USER_AGENT = u'Alfred-Workflow/1.36 (+http://www.deanishe.net/alfred-workflow)'
@@ -88,10 +90,10 @@ def str_dict(dic):
     else:
         dic2 = {}
     for k, v in dic.items():
-        if isinstance(k, unicode):
-            k = k.encode('utf-8')
-        if isinstance(v, unicode):
-            v = v.encode('utf-8')
+        if isinstance(k, bytes):
+            k = k.decode('utf-8')
+        if isinstance(v, bytes):
+            v = v.decode('utf-8')
         dic2[k] = v
     return dic2
 
@@ -120,7 +122,7 @@ class CaseInsensitiveDictionary(dict):
     def __init__(self, initval=None):
         """Create new case-insensitive dictionary."""
         if isinstance(initval, dict):
-            for key, value in initval.iteritems():
+            for key, value in initval.items():
                 self.__setitem__(key, value)
 
         elif isinstance(initval, list):
@@ -152,29 +154,29 @@ class CaseInsensitiveDictionary(dict):
 
     def items(self):
         """Return ``(key, value)`` pairs."""
-        return [(v['key'], v['val']) for v in dict.itervalues(self)]
+        return [(v['key'], v['val']) for v in dict.values(self)]
 
     def keys(self):
         """Return original keys."""
-        return [v['key'] for v in dict.itervalues(self)]
+        return [v['key'] for v in dict.values(self)]
 
     def values(self):
         """Return all values."""
-        return [v['val'] for v in dict.itervalues(self)]
+        return [v['val'] for v in dict.values(self)]
 
     def iteritems(self):
         """Iterate over ``(key, value)`` pairs."""
-        for v in dict.itervalues(self):
+        for v in dict.values(self):
             yield v['key'], v['val']
 
     def iterkeys(self):
         """Iterate over original keys."""
-        for v in dict.itervalues(self):
+        for v in dict.values(self):
             yield v['key']
 
     def itervalues(self):
         """Interate over values."""
-        for v in dict.itervalues(self):
+        for v in dict.values(self):
             yield v['val']
 
 
@@ -327,7 +329,7 @@ class Response(object):
 
         """
         if self.encoding:
-            return unicodedata.normalize('NFC', unicode(self.content,
+            return unicodedata.normalize('NFC', self.content.decode(
                                                         self.encoding))
         return self.content
 
@@ -554,26 +556,26 @@ def request(method, url, params=None, data=None, headers=None, cookies=None,
         new_headers, data = encode_multipart_formdata(data, files)
         headers.update(new_headers)
     elif data and isinstance(data, dict):
-        data = urllib.urlencode(str_dict(data))
+        data = urllib.parse.urlencode(str_dict(data))
 
     # Make sure everything is encoded text
     headers = str_dict(headers)
 
-    if isinstance(url, unicode):
-        url = url.encode('utf-8')
+    if isinstance(url, bytes):
+        url = url.decode('utf-8')
 
     if params:  # GET args (POST args are handled in encode_multipart_formdata)
 
-        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
+        scheme, netloc, path, query, fragment = urllib.parse.urlsplit(url)
 
         if query:  # Combine query string and `params`
-            url_params = urlparse.parse_qs(query)
+            url_params = urllib.parse.parse_qs(query)
             # `params` take precedence over URL query string
             url_params.update(params)
             params = url_params
 
-        query = urllib.urlencode(str_dict(params), doseq=True)
-        url = urlparse.urlunsplit((scheme, netloc, path, query, fragment))
+        query = urllib.parse.urlencode(str_dict(params), doseq=True)
+        url = urllib.parse.urlunsplit((scheme, netloc, path, query, fragment))
 
     req = urllib2.Request(url, data, headers)
     return Response(req, stream)
@@ -645,9 +647,9 @@ def encode_multipart_formdata(fields, files):
 
     # Normal form fields
     for (name, value) in fields.items():
-        if isinstance(name, unicode):
+        if isinstance(name, str):
             name = name.encode('utf-8')
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode('utf-8')
         output.append('--' + boundary)
         output.append('Content-Disposition: form-data; name="%s"' % name)
@@ -662,11 +664,11 @@ def encode_multipart_formdata(fields, files):
             mimetype = d[u'mimetype']
         else:
             mimetype = get_content_type(filename)
-        if isinstance(name, unicode):
+        if isinstance(name, str):
             name = name.encode('utf-8')
-        if isinstance(filename, unicode):
+        if isinstance(filename, str):
             filename = filename.encode('utf-8')
-        if isinstance(mimetype, unicode):
+        if isinstance(mimetype, str):
             mimetype = mimetype.encode('utf-8')
         output.append('--' + boundary)
         output.append('Content-Disposition: form-data; '

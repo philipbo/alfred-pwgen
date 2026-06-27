@@ -108,8 +108,8 @@ def unicodify(s, encoding='utf-8', norm=None):
         unicode: Decoded, optionally normalised, Unicode string.
 
     """
-    if not isinstance(s, unicode):
-        s = unicode(s, encoding)
+    if isinstance(s, bytes):
+        s = s.decode(encoding)
 
     if norm:
         from unicodedata import normalize
@@ -133,13 +133,13 @@ def utf8ify(s):
         str: UTF-8 string or string representation of s.
 
     """
-    if isinstance(s, str):
+    if isinstance(s, bytes):
         return s
 
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         return s.encode('utf-8')
 
-    return str(s)
+    return str(s).encode('utf-8')
 
 
 def applescriptify(s):

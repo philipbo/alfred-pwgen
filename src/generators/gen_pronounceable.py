@@ -64,10 +64,10 @@ class PronounceableGenerator(WordGenBase):
     def data(self):
         if not self._syllables:
             # each syllable is consonant-vowel-consonant "pronounceable"
-            self._syllables = map(''.join,
+            self._syllables = list(map(''.join,
                                   itertools.product(initial_consonants,
                                                     vowels,
-                                                    final_consonants))
+                                                    final_consonants)))
         return self._syllables
 
     @property

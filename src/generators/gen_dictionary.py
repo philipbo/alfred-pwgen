@@ -39,7 +39,7 @@ class WordlistGenerator(WordGenBase):
     def data(self):
         if not self._words:
             words = set()
-            with open(self._filepath, 'rb') as fp:
+            with open(self._filepath, 'r', encoding='utf-8', errors='ignore') as fp:
                 for line in fp:
                     line = line.strip()
                     if not line or len(line) > self._maxlen:

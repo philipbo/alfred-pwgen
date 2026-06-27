@@ -79,8 +79,8 @@ class MarkovChain(object):
                 counts[current][nxt] += 1
 
         self.totals = dict(
-            (current, sum(next_counts.itervalues()))
-            for current, next_counts in counts.iteritems()
+            (current, sum(next_counts.values()))
+            for current, next_counts in counts.items()
         )
 
     def next(self, state):
@@ -91,7 +91,7 @@ class MarkovChain(object):
 
         """
 
-        nexts = self.counts[state].iteritems()
+        nexts = self.counts[state].items()
         # Like random.choice() but with a different weight for each element
         rand = self._rand.randrange(0, self.totals[state])
         # Using bisection here could be faster, but simplicity prevailed.
